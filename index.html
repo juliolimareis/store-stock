@@ -132,19 +132,28 @@
           (product) => product.name == event.target.value
         )
       },
+      handleNumber(value){
+        const _value = value.replace("-", "")  
+        const number = parseFloat(_value)
+        if(!isNaN(number)){
+          return number
+        } return null
+      },
       addProduct(){
-        this.productSelected.amount += parseFloat(this.sumProduct)
-        this.sumProduct = 0
-        this.saveData()
+        const number = this.handleNumber(this.sumProduct)
+        if(number){
+          this.productSelected.amount += number
+          this.sumProduct = 0
+          this.saveData()
+        }
       },
       reduceProduct(){
-        const value = this.reductionProduct.replace("-", "")  
-        const number = parseFloat(value)
-        if(!isNaN(number)){
+        const number = this.handleNumber(this.reductionProduct)
+        if(number){
           this.productSelected.amount -= number
+          this.reductionProduct = 0
+          this.saveData()
         }
-        this.reductionProduct = 0
-        this.saveData()
       },
       saveData(){
         if(this.productSelected.amount < 0){

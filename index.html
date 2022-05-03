@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style/bulma.css">
+  <script src="js/vue.js"></script>
+  <title>SToRe</title>
+</head>
+
+<body>
+  <div id="app" class="container p-3">
+    <h1 class="is-size-1 has-text-centered">STorE</h1>
+
+    <div class="select is-link mb-2">
+      <select @change="selectProduct($event)">
+        <option v-for="(product, i) in products" :key="i">
+          {{product.name}}
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <div class="is-flex">
+        <input 
+          class="input is-primary mr-3"
+          type="number"
+          placeholder="kg"
+          v-model="sumProduct"
+        >
+        <input 
+          disabled
+          class="input is-primary"
+          type="number"
+          placeholder="estoque"
+          :value="productSelected?.amount ?? 0"
+        >
+      </div>
+      <button 
+        class="button mt-2 is-primary"
+        @click="addProduct"
+      >
+        Inserir
+      </button>
+    </div>
+
+    <div class="mt-4">
+      <div class="is-flex">
+        <input 
+          class="input is-danger mr-3"
+          type="number"
+          placeholder="entrada"
+          v-model="reductionProduct"
+        >
+      </div>
+      <button
+        class="button mt-2 is-danger"
+        @click="reduceProduct"
+      >
+        Retirar
+      </button>
+    </div>
+
+    <button
+      class="button mt-6 is-info"
+      @click="isOptions = !isOptions"
+    >
+      Mais Opções
+    </button>
+
+    <template v-if="isOptions">
+      <div class="has-text-centered mt-4">
+
+        <h1 class="is-size-3">Adicionar Produto</h1>
+  
+        <div class="is-flex">
+          <input 
+            class="input is-primary mr-3"
+            type="text"
+            placeholder="Nome do produto"
+            v-model="nameNewProduct"
+          >
+        </div>
+        <button
+          class="button mt-2 is-primary"
+          @click="addNewProduct"
+        >
+          Adicionar
+        </button>
+      </div>
+  
+      <div class="has-text-centered mt-4">
+  
+        <h1 class="is-size-3">Remover Produto</h1>
+  
+        <button
+          class="button mt-2 is-danger"
+          @click="removeProduct"
+        >
+          Remover {{ productSelected?.name }}
+        </button>
+      </div>
+    </template>
+
+  </div>
+</body>
+</html>
+
+<script>
+  const app = new Vue({
+    el: '#app',
+    data: {
+      products:[],
+      sumProduct: 0,
+      nameNewProduct: "",
+      reductionProduct: 0,
+      productSelected: null,
+      isOptions: false
+    },
+    mounted(){
+      this.products = this.getData()
+      if(this.products && this.products.length){
+        this.productSelected = this.products[0]
+      }
+      // console.log(this.products)
+    },
+    methods:{
+      selectProduct(event){
+        sumProduct = 0
+        this.productSelected = this.products.find(
+          (product) => product.name == event.target.value
+        )
+      },
+      addProduct(){
+        this.productSelected.amount += parseFloat(this.sumProduct)
+        this.sumProduct = 0
+        this.saveData()
+      },
+      reduceProduct(){
+        const value = this.reductionProduct.replace("-", "")  
+        const number = parseFloat(value)
+        if(!isNaN(number)){
+          this.productSelected.amount -= number
+        }
+        this.reductionProduct = 0
+        this.saveData()
+      },
+      saveData(){
+        if(this.productSelected.amount < 0){
+          this.productSelected = 0
+        }
+        localStorage.setItem("products", JSON.stringify(this.products))
+      },
+      removeProduct(){
+        this.products = this.products.filter(
+          (product) => product.id != this.productSelected.id
+        )
+        if(this.products.length > 0){
+          this.productSelected = this.products[0]
+        }
+        this.saveData()
+      },
+      getData(){
+        const data = JSON.parse(localStorage.getItem("products"))
+        if(data){
+          return data
+        } return [
+          {
+            id: 1,
+            name: "Bacon",
+            amount: 0 
+          },
+          {
+            id: 2,
+            name: "Molho",
+            amount: 0 
+          },
+        ]
+      },
+      addNewProduct(){
+        this.products.push({
+          id: this.products.length + 1,
+          name: this.nameNewProduct,
+          amount: 0
+        })
+        this.saveData()
+        this.nameNewProduct = ""
+      }
+    }
+  })
+</script>
